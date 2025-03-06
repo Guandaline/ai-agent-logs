@@ -5,7 +5,7 @@ from io import StringIO
 
 @pytest.mark.benchmark
 def test_large_log_performance(benchmark):
-    """Testa o tempo de execução do parser em um log grande"""
+    """test parser execution time on a large log entry"""
     large_logs = "\n".join(
         [
             f'[2025-02-20 14:32:10] INFO - Agent Response: "Hello!"'
