@@ -1,30 +1,36 @@
 import logging
 import json
 import re
-import argparse
+import os
 from collections import Counter
 from ai_agent_logs.log_types import LogType
 
-# Configuração do Logging
+# Ensure the logs directory exists
+log_dir = "logs"
+os.makedirs(log_dir, exist_ok=True)
+
+# Logging configuration
 logging.basicConfig(
-    filename="logs/app.log",  # Salva os logs em um arquivo
-    level=logging.INFO,  # Define o nível de logging
+    filename=os.path.join(log_dir, "app.log"),  # Saves logs to a file
+    level=logging.INFO,  # Sets the logging level
     format="%(asctime)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
+
 class LogAnalyzer:
     def __init__(self, log_file_path):
+        """Initializes the LogAnalyzer with the specified log file path."""
         self.log_file_path = log_file_path
         self.log_counts = Counter()
         self.agent_responses = Counter()
         self.error_messages = Counter()
-        self.response_pattern = re.compile(r'INFO - Agent Response: \"(.*?)\"')
-        self.error_pattern = re.compile(r'ERROR - (.+)')
+        self.response_pattern = re.compile(r"INFO - Agent Response: \"(.*?)\"")
+        self.error_pattern = re.compile(r"ERROR - (.+)")
         logging.info("LogAnalyzer initialized.")
 
     def parse_log_line(self, line):
-        """ Processa uma única linha do log """
+        """Processes a single log line."""
         try:
             if LogType.INFO.value in line:
                 self.log_counts[LogType.INFO] += 1
@@ -44,10 +50,10 @@ class LogAnalyzer:
             logging.error(f"Error processing log line: {line.strip()} - {e}")
 
     def parse_log_file(self):
-        """ Lê o arquivo de log e processa cada linha """
+        """Reads the log file and processes each line."""
         logging.info(f"Parsing log file: {self.log_file_path}")
         try:
-            with open(self.log_file_path, 'r', encoding='utf-8') as file:
+            with open(self.log_file_path, "r", encoding="utf-8") as file:
                 for line in file:
                     self.parse_log_line(line)
             logging.info("Finished parsing log file.")
@@ -57,10 +63,12 @@ class LogAnalyzer:
             logging.error(f"Error reading log file: {self.log_file_path} - {e}")
 
     def save_results(self, output_file="data/log_analysis.json"):
-        """ Salva os resultados da análise em um arquivo JSON """
+        """Saves the analysis results to a JSON file."""
         try:
             results = {
-                "log_summary": {log_type.value: count for log_type, count in self.log_counts.items()},
+                "log_summary": {
+                    log_type.value: count for log_type, count in self.log_counts.items()
+                },
                 "top_responses": self.agent_responses.most_common(3),
                 "common_errors": self.error_messages.most_common(3),
             }
@@ -72,7 +80,7 @@ class LogAnalyzer:
             logging.error(f"Error saving results to {output_file}: {e}")
 
     def display_results(self):
-        """ Exibe o resumo dos logs """
+        """Displays the summary of the log analysis."""
         try:
             print("Log Summary:")
             for log_type, count in self.log_counts.items():
@@ -80,7 +88,7 @@ class LogAnalyzer:
 
             print("\nTop 3 AI Responses:")
             for response, count in self.agent_responses.most_common(3):
-                print(f"{count} times - \"{response}\"")
+                print(f'{count} times - "{response}"')
 
             print("\nMost Common Errors:")
             for error, count in self.error_messages.most_common(3):
@@ -89,7 +97,7 @@ class LogAnalyzer:
             logging.error(f"Error displaying results: {e}")
 
     def run(self, save_to_file=True):
-        """ Executa todo o pipeline de análise de logs """
+        """Executes the entire log analysis pipeline."""
         try:
             self.parse_log_file()
             self.display_results()
@@ -97,22 +105,3 @@ class LogAnalyzer:
                 self.save_results()
         except Exception as e:
             logging.critical(f"Unexpected error during execution: {e}")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="AI Agent Log Analyzer")
-    parser.add_argument(
-        "log_file",
-        nargs="?",
-        default="data/sample_logs.txt",
-        help="Path to the log file",
-    )
-    parser.add_argument(
-        "--no-save",
-        action="store_false",
-        dest="save_to_file",
-        help="Disable saving results to a JSON file",
-    )
-    args = parser.parse_args()
-
-    analyzer = LogAnalyzer(args.log_file)
-    analyzer.run(save_to_file=args.save_to_file)
