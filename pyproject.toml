@@ -1,0 +1,27 @@
+[project]
+name = "ai-agent-logs"
+version = "0.1.0"
+description = "Python script that processes AI agent logs, extracts useful insights, and presents the results in a structured format."
+authors = [
+    {name = "Guandaline", email = "vhguandaline@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+]
+
+[tool.poetry]
+name = "ai-agent-logs"
+version = "0.1.0"
+description = "Python script that processes AI agent logs, extracts useful insights, and presents the results in a structured format."
+authors = ["Guandaline <vhguandaline@gmail.com>"]
+packages = [{include = "ai_agent_logs"}]  # Garante que o Poetry reconhece o código
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-benchmark = "^5.1.0"
+pytest-cov = "^6.0.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,9 @@
+[2025-02-20 14:32:10] INFO - Agent Response: "Hello! How can I help you today?"
+[2025-02-20 14:33:15] ERROR - Model Timeout after 5000ms
+[2025-02-20 14:34:02] INFO - Agent Response: "I'm sorry, I didn't understand that."
+[2025-02-20 14:35:10] WARNING - Low memory detected
+[2025-02-20 14:36:10] ERROR - API Connection Failure
+[2025-02-20 14:37:15] INFO - Agent Response: "Hello! How can I help you today?"
+[2025-02-20 14:38:10] WARNING - High CPU usage
+[2025-02-20 14:39:20] ERROR - Database Query Failed
+[2025-02-20 14:40:30] INFO - Agent Response: "How can I assist you further?"
