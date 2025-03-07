@@ -30,24 +30,11 @@ flake8 = "^7.1.2"
 mypy = "^1.15.0"
 pylint = "^3.3.4"
 autopep8 = "^2.3.2"
+autoflake = "^2.3.1"
 
 [tool.isort]
 profile = "black"
 skip = [".venv", ".git", "__pycache__", "docs", "data", "*.txt"]
-
-[tool.black]
-line-length = 88
-exclude = '''
-(
-    \.venv
-    | \.git
-    | __pycache__
-    | docs
-    | data
-    | .*\.txt$
-)
-'''
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

@@ -1,7 +1,6 @@
 import os
 import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
 
 from ai_agent_logs.log_analyzer import LogAnalyzer
 from ai_agent_logs.log_parser import LogParser

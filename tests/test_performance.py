@@ -1,4 +1,3 @@
-from io import StringIO
 
 import pytest
 
@@ -11,7 +10,7 @@ def test_analyzer_performance(benchmark, tmp_path):
 
     large_logs = "\n".join(
         [
-            f'[2025-02-20 14:32:10] INFO - Agent Response: "Hello!"'
+            '[2025-02-20 14:32:10] INFO - Agent Response: "Hello!"'
             for _ in range(500000)
         ]
     )
