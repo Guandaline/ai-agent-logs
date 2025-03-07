@@ -13,7 +13,7 @@ def test_large_log_performance(benchmark):
         ]
     )
     log_file_mock = StringIO(large_logs)
-    analyzer = LogAnalyzer(None)
+    analyzer = LogAnalyzer()
 
     # Benchmark para medir tempo de execução
     benchmark(lambda: [analyzer.parse_log_line(line) for line in log_file_mock])

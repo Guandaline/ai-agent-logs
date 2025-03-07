@@ -1,78 +1,90 @@
+import json
+import os
 import ray
 from collections import Counter
-from ai_agent_logs.log_analyzer import LogAnalyzer
-from ai_agent_logs.log_types import LogType
-
-# Initialize Ray
-ray.init(ignore_reinit_error=True)
+from ai_agent_logs.log_analyzer import (
+    LogAnalyzer,
+)  # Importing the LogAnalyzer from the main module
 
 
 @ray.remote
-def process_log_chunk(log_chunk):
-    """Processes a chunk of log lines in a Ray worker and returns counts."""
-    log_analyzer = LogAnalyzer(None)
-
-    log_counts = Counter({LogType.INFO: 0, LogType.ERROR: 0, LogType.WARNING: 0})
-    agent_responses = Counter()
-    error_messages = Counter()
-
-    # Process each line
-    for line in log_chunk:
+def process_log_chunk(lines):
+    """Processes a chunk of log lines using LogAnalyzer."""
+    log_analyzer = LogAnalyzer()
+    for line in lines:
         log_analyzer.parse_log_line(line)
-
-    # Assign parsed counts to local counters (no cumulative updates inside loop)
-    log_counts.update(log_analyzer.log_counts)
-    agent_responses.update(log_analyzer.agent_responses)
-    error_messages.update(log_analyzer.error_messages)
-
-    return (
-        dict(log_counts),
-        dict(agent_responses),
-        dict(error_messages),
-    )  # Convert to dicts for serialization
+    return {
+        "log_counts": dict(log_analyzer.log_counts),
+        "agent_responses": dict(log_analyzer.agent_responses),
+        "error_messages": dict(log_analyzer.error_messages),
+    }
 
 
-def process_logs_ray(log_file_path, num_workers=4):
-    """Executes distributed log analysis using Ray."""
-    with open(log_file_path, "r", encoding="utf-8") as f:
+def process_logs_ray(log_file, num_workers=4):
+    """Processes logs using Ray for distributed execution."""
+    if not os.path.exists(log_file):
+        print(f"Error: Log file '{log_file}' not found.")
+        return
+
+    with open(log_file, "r", encoding="utf-8") as f:
         log_lines = f.readlines()
 
-    # Ensure at least one worker and avoid zero chunk size
-    num_workers = min(num_workers, len(log_lines)) or 1
-    chunk_size = max(1, len(log_lines) // num_workers)
+    if not log_lines:
+        print("Warning: The log file is empty.")
+        return
 
-    # Distribute logs into equal chunks without overlap
+    chunk_size = len(log_lines) // num_workers or 1
     log_chunks = [
         log_lines[i : i + chunk_size] for i in range(0, len(log_lines), chunk_size)
     ]
 
-    # Dispatch tasks to Ray workers
+    ray.init(ignore_reinit_error=True)
     futures = [process_log_chunk.remote(chunk) for chunk in log_chunks]
-    results = ray.get(futures)  # Retrieve results from workers
+    results = ray.get(futures)
 
-    # Initialize counters
-    final_counts = Counter({LogType.INFO: 0, LogType.ERROR: 0, LogType.WARNING: 0})
+    # Aggregate results
+    final_counts = Counter()
     final_responses = Counter()
     final_errors = Counter()
 
-    # Aggregate results from workers
-    for log_counts, agent_responses, error_messages in results:
-        final_counts.update(log_counts)
-        final_responses.update(agent_responses)
-        final_errors.update(error_messages)
+    for result in results:
+        final_counts.update(result["log_counts"])
+        final_responses.update(result["agent_responses"])
+        final_errors.update(result["error_messages"])
 
-    # Convert Enum keys to strings for proper display
-    final_counts = {key.value: value for key, value in final_counts.items()}
-
+    # Display results
     print("\n⚡ Ray Distributed Log Analysis Completed!")
-    print("INFO:", final_counts.get("INFO", 0))
-    print("ERROR:", final_counts.get("ERROR", 0))
-    print("WARNING:", final_counts.get("WARNING", 0))
-    print("Top 3 AI Responses:", final_responses.most_common(3))
-    print("Most Common Errors:", final_errors.most_common(3))
+    print(f"INFO: {final_counts.get('INFO', 0)}")
+    print(f"ERROR: {final_counts.get('ERROR', 0)}")
+    print(f"WARNING: {final_counts.get('WARNING', 0)}")
+
+    print("\nTop 3 AI Responses:")
+    for response, count in final_responses.most_common(3):
+        print(f'{count} times - "{response}"')
+
+    print("\nMost Common Errors:")
+    for error, count in final_errors.most_common(3):
+        print(f"{count} times - {error}")
+
+    # Save results
+    output_file = "data/ray_log_analysis.json"
+    try:
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "log_summary": dict(final_counts),
+                    "top_responses": final_responses.most_common(3),
+                    "common_errors": final_errors.most_common(3),
+                },
+                f,
+                indent=4,
+            )
+        print(f"\n📂 Results saved to {output_file}")
+    except Exception as e:
+        print(f"Error saving results: {e}")
 
 
 if __name__ == "__main__":
     log_file = "data/sample_logs.txt"
-    num_workers = 4  # Number of workers
+    num_workers = 4  # Adjust the number of workers if needed
     process_logs_ray(log_file, num_workers)

@@ -1,107 +1,79 @@
-import logging
 import json
-import re
 import os
+import ray
 from collections import Counter
-from ai_agent_logs.log_types import LogType
-
-# Ensure the logs directory exists
-log_dir = "logs"
-os.makedirs(log_dir, exist_ok=True)
-
-# Logging configuration
-logging.basicConfig(
-    filename=os.path.join(log_dir, "app.log"),  # Saves logs to a file
-    level=logging.INFO,  # Sets the logging level
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 
 
 class LogAnalyzer:
-    def __init__(self, log_file_path):
-        """Initializes the LogAnalyzer with the specified log file path."""
-        self.log_file_path = log_file_path
+    def __init__(self):
         self.log_counts = Counter()
         self.agent_responses = Counter()
         self.error_messages = Counter()
-        self.response_pattern = re.compile(r"INFO - Agent Response: \"(.*?)\"")
-        self.error_pattern = re.compile(r"ERROR - (.+)")
-        logging.info("LogAnalyzer initialized.")
 
     def parse_log_line(self, line):
-        """Processes a single log line."""
+        """Parses a single log line and updates the counters."""
+        if "INFO" in line:
+            self.log_counts["INFO"] += 1
+        elif "ERROR" in line:
+            self.log_counts["ERROR"] += 1
+        elif "WARNING" in line:
+            self.log_counts["WARNING"] += 1
+
+        if "Agent Response:" in line:
+            response = line.split("Agent Response:")[1].strip().strip('"')
+            self.agent_responses[response] += 1
+        elif "ERROR -" in line:
+            error_msg = line.split("ERROR - ")[1].strip()
+            self.error_messages[error_msg] += 1
+
+
+    def save_results(self, output_file):
         try:
-            if LogType.INFO.value in line:
-                self.log_counts[LogType.INFO] += 1
-                response_match = self.response_pattern.search(line)
-                if response_match:
-                    self.agent_responses[response_match.group(1)] += 1
-            elif LogType.ERROR.value in line:
-                self.log_counts[LogType.ERROR] += 1
-                error_match = self.error_pattern.search(line)
-                if error_match:
-                    self.error_messages[error_match.group(1)] += 1
-            elif LogType.WARNING.value in line:
-                self.log_counts[LogType.WARNING] += 1
-
-            logging.debug(f"Processed log line: {line.strip()}")
-        except Exception as e:
-            logging.error(f"Error processing log line: {line.strip()} - {e}")
-
-    def parse_log_file(self):
-        """Reads the log file and processes each line."""
-        logging.info(f"Parsing log file: {self.log_file_path}")
-        try:
-            with open(self.log_file_path, "r", encoding="utf-8") as file:
-                for line in file:
-                    self.parse_log_line(line)
-            logging.info("Finished parsing log file.")
-        except FileNotFoundError:
-            logging.error(f"Log file not found: {self.log_file_path}")
-        except Exception as e:
-            logging.error(f"Error reading log file: {self.log_file_path} - {e}")
-
-    def save_results(self, output_file="data/log_analysis.json"):
-        """Saves the analysis results to a JSON file."""
-        try:
-            results = {
-                "log_summary": {
-                    log_type.value: count for log_type, count in self.log_counts.items()
-                },
-                "top_responses": self.agent_responses.most_common(3),
-                "common_errors": self.error_messages.most_common(3),
-            }
-
             with open(output_file, "w", encoding="utf-8") as f:
-                json.dump(results, f, indent=4)
-            logging.info(f"Results saved to {output_file}")
+                json.dump(
+                    {
+                        "log_summary": dict(self.log_counts),
+                        "common_errors": self.error_messages.most_common(3),
+                    },
+                    f,
+                    indent=4,
+                )
         except Exception as e:
-            logging.error(f"Error saving results to {output_file}: {e}")
+            print(f"Error saving results: {e}")
 
-    def display_results(self):
-        """Displays the summary of the log analysis."""
-        try:
-            print("Log Summary:")
-            for log_type, count in self.log_counts.items():
-                print(f"- {log_type.value} messages: {count}")
 
-            print("\nTop 3 AI Responses:")
-            for response, count in self.agent_responses.most_common(3):
-                print(f'{count} times - "{response}"')
+@ray.remote
+def process_log_chunk(lines):
+    """Processes a chunk of log lines."""
+    log_analyzer = LogAnalyzer()
+    for line in lines:
+        log_analyzer.parse_log_line(line)
+    return log_analyzer.log_counts
 
-            print("\nMost Common Errors:")
-            for error, count in self.error_messages.most_common(3):
-                print(f"{count} times - {error}")
-        except Exception as e:
-            logging.error(f"Error displaying results: {e}")
 
-    def run(self, save_to_file=True):
-        """Executes the entire log analysis pipeline."""
-        try:
-            self.parse_log_file()
-            self.display_results()
-            if save_to_file:
-                self.save_results()
-        except Exception as e:
-            logging.critical(f"Unexpected error during execution: {e}")
+def process_logs_ray(log_file, num_workers=4):
+    """Processes logs using Ray for distributed execution."""
+    with open(log_file, "r", encoding="utf-8") as f:
+        log_lines = f.readlines()
+
+    chunk_size = len(log_lines) // num_workers or 1
+    log_chunks = [
+        log_lines[i : i + chunk_size] for i in range(0, len(log_lines), chunk_size)
+    ]
+
+    ray.init(ignore_reinit_error=True)
+    futures = [process_log_chunk.remote(chunk) for chunk in log_chunks]
+    results = ray.get(futures)
+
+    final_counts = Counter()
+    for result in results:
+        final_counts.update(result)
+
+    print("\n⚡ Ray Distributed Log Analysis Completed!")
+    for log_type, count in final_counts.items():
+        print(f"{log_type}: {count}")
+
+
+if __name__ == "__main__":
+    log_file = "data/sample_logs.txt"
+    process_logs_ray(log_file)

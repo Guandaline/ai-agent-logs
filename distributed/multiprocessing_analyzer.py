@@ -11,7 +11,7 @@ def process_log_chunk(log_chunk):
         LogType,
     )  # ✅ Explicitly import LogType inside the function
 
-    log_analyzer = LogAnalyzer(None)
+    log_analyzer = LogAnalyzer()
 
     # Ensure we initialize fresh counters for each process
     log_counts = Counter({LogType.INFO: 0, LogType.ERROR: 0, LogType.WARNING: 0})
@@ -57,7 +57,7 @@ def process_logs_distributed(log_file_path, num_workers=4):
         final_errors.update(error_messages)
 
     # Convert Enum keys to strings for proper display
-    final_counts = {key.value: value for key, value in final_counts.items()}
+    final_counts = {str(key): value for key, value in final_counts.items()}
 
     print("\n🚀 Multiprocessing Log Analysis Completed!")
     print("INFO:", final_counts.get("INFO", 0))
