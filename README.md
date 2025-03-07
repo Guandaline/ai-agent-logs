@@ -124,6 +124,55 @@ poetry run pytest tests/ --benchmark-columns=min,mean,max
 Sample output:
 ![alt text](img/benchmark.png)
 
+## 🚀 Continuous Integration (CI) with GitHub Actions
+This repository uses GitHub Actions to ensure code quality and prevent broken merges into the main branch.
+
+- ✅ CI Pipeline Includes:
+- 🔬 Run Tests: Executes all tests using pytest
+- 🎨 Code Formatting: Ensures code is formatted with black
+- 🛡️ Linting: Checks for code quality issues with flake8
+- 🚨 Merge Protection: Blocks merging into main if tests or checks fail
+- 🔧 Running Checks Locally
+
+Before pushing your code, you can run the same checks locally:
+
+### Run Tests
+```bash
+pytest tests/
+```
+
+### Check Code Formatting
+```bash
+black --check .
+```
+
+### Auto-format Code
+```bash
+black .
+```
+
+### Lint Code with Flake8
+```bash
+flake8 .
+```
+
+## 🛠️ How CI Works
+1️⃣ When you open a Pull Request to main, GitHub Actions automatically runs:
+
+- 🧪 Tests
+- 🎨 Code Formatting Check
+- 🔍 Linting for best practices
+
+2️⃣ The PR can only be merged if all checks pass ✅.
+- If anything fails ❌, you must fix it before merging.
+
+## 🔒 Protected Branches
+
+Merging into main is restricted
+- All PRs must pass CI checks before merging
+- Merges require the latest main updates
+
+
 ## 📈 Future Improvements
 - 🔹 Streaming process
 - 🔹 Add support for JSON logs.
@@ -133,10 +182,4 @@ Sample output:
 
 ## License
 This project is distributed under the MIT License.
-
-### ✨ What's New in This Version?
-
-- ✅ Added Distributed Processing with Multiprocessing & Ray
-- ✅ Enhanced Automated Tests for scalability & correctness
-- ✅ Included Performance Benchmarks for comparison
 
