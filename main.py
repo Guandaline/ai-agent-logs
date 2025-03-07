@@ -22,7 +22,7 @@ def main():
 
     # Run the analyzer with the provided arguments
     analyzer = LogAnalyzer(args.log_file, args.output)
-    log_summary = analyzer.run()
+    analyzer.run()
 
 
 if __name__ == "__main__":

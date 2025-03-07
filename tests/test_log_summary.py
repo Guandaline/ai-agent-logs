@@ -1,7 +1,6 @@
 import json
 import os
 import unittest
-from unittest.mock import MagicMock
 
 from ai_agent_logs.log_parser import LogParser
 from ai_agent_logs.log_summary import LogSummary
