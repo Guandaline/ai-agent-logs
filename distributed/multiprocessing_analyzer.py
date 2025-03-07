@@ -50,7 +50,7 @@ def process_logs_distributed(log_file, num_workers=4):
 
         chunk_size = len(log_lines) // num_workers or 1
         log_chunks = [
-            log_lines[i: i + chunk_size] for i in range(0, len(log_lines), chunk_size)
+            log_lines[i : i + chunk_size] for i in range(0, len(log_lines), chunk_size)
         ]
 
         logging.info(f"Log file split into {len(log_chunks)} chunks.")
