@@ -1,7 +1,7 @@
 name: 🚀 CI - Run Tests and Lint
 
 on:
-  pull_request:  # Roda a cada PR para main
+  pull_request:
     branches:
       - main
 
@@ -19,16 +19,17 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: 📦 Install Dependencies
+      - name: 📦 Install Poetry
         run: |
-          python -m pip install --upgrade pip
-          pip install pytest flake8 black
+          pip install poetry
+          poetry config virtualenvs.create true
+          poetry install  # Instala todas as dependências
 
       - name: 🎯 Run Tests
-        run: pytest tests/
+        run: poetry run pytest tests/
 
       - name: 🔎 Check Code Formatting with Black
-        run: black --check .
+        run: poetry run black --check .
 
       - name: 🔍 Run Linter (Flake8)
-        run: flake8 .
+        run: poetry run flake8 .
