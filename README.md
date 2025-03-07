@@ -23,6 +23,7 @@ ai-agent-logs/
 │── distributed/                    # 📂 Processamento distribuído
 │   ├── multiprocessing_analyzer.py  # 🔄 Processamento paralelo com multiprocessing
 │   ├── ray_analyzer.py              # ⚡ Processamento distribuído com Ray
+│── output/                         # 📂 Outputs files
 │── tests/                          # 📂 Testes automatizados
 │   ├── __init__.py                  # Inicializa o pacote de testes
 │   ├── test_log_analyzer.py          # Testes unitários do analisador de logs
@@ -45,6 +46,7 @@ ai-agent-logs/
 │── poetry.lock                      # 🔒 Lockfile do Poetry
 │── main.py                          # 🏁 Ponto de entrada do analisador de logs
 │── pytest.ini                        # ⚙️ Configuração do Pytest
+│── .flake8                         # 📦 Flaek8 configs
 ```
 
 ## Installation
