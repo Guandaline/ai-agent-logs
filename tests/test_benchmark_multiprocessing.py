@@ -1,4 +1,5 @@
 import pytest
+
 from distributed.multiprocessing_analyzer import process_logs_distributed
 
 

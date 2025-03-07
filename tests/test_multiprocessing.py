@@ -1,6 +1,8 @@
 import os
-import pytest
 from collections import Counter
+
+import pytest
+
 from distributed.multiprocessing_analyzer import process_logs_distributed
 
 
@@ -15,6 +17,7 @@ def test_multiprocessing_analysis(capfd):
 
     # Read captured output
     captured = capfd.readouterr()
+    print("\nCaptured Output:\n", captured.out)  # 🔹 Verifica a saída
 
     # Validate output structure
     assert "Multiprocessing Log Analysis Completed!" in captured.out
@@ -33,10 +36,12 @@ def test_multiprocessing_analysis(capfd):
             key, value = line.split(":")
             log_counts[key.strip()] = int(value.strip())
 
+    print("\nExtracted Log Counts:\n", log_counts)  # 🔹 Verifica o dicionário extraído
+
     # Ensure logs are being counted properly
-    assert log_counts["INFO"] > 0, "INFO count is incorrect"
-    assert log_counts["ERROR"] > 0, "ERROR count is incorrect"
-    assert log_counts["WARNING"] > 0, "WARNING count is incorrect"
+    assert log_counts.get("INFO", 0) > 0, "INFO count is incorrect"
+    assert log_counts.get("ERROR", 0) > 0, "ERROR count is incorrect"
+    assert log_counts.get("WARNING", 0) > 0, "WARNING count is incorrect"
 
 
 if __name__ == "__main__":

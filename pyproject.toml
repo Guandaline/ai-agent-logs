@@ -22,6 +22,29 @@ packages = [{include = "ai_agent_logs"}]  # Garante que o Poetry reconhece o có
 pytest = "^8.3.5"
 pytest-benchmark = "^5.1.0"
 pytest-cov = "^6.0.0"
+black = "^25.1.0"
+isort = "^6.0.1"
+flake8 = "^7.1.2"
+mypy = "^1.15.0"
+pylint = "^3.3.4"
+
+[tool.isort]
+profile = "black"
+skip = [".venv", ".git", "__pycache__", "docs", "data", "*.txt"]
+
+[tool.black]
+line-length = 88
+exclude = '''
+(
+    \.venv
+    | \.git
+    | __pycache__
+    | docs
+    | data
+    | .*\.txt$
+)
+'''
+
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

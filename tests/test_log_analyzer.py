@@ -1,53 +1,58 @@
+import os
+import tempfile
 import unittest
-from unittest.mock import patch, mock_open
-from collections import Counter
+from unittest.mock import MagicMock, patch
+
 from ai_agent_logs.log_analyzer import LogAnalyzer
+from ai_agent_logs.log_parser import LogParser
+from ai_agent_logs.log_summary import LogSummary
 
 
 class TestLogAnalyzer(unittest.TestCase):
+    """Test suite for LogAnalyzer."""
+
     def setUp(self):
-        """Set up a fresh LogAnalyzer instance for each test."""
-        self.analyzer = LogAnalyzer()
-
-    def test_parse_log_line(self):
-        """Test if a single log line is correctly parsed."""
-        sample_log_entry = '[2025-02-20 14:32:10] INFO - Agent Response: "Hello!"\n'
-        self.analyzer.parse_log_line(sample_log_entry)
-
-        self.assertEqual(self.analyzer.log_counts["INFO"], 1)
-        self.assertEqual(self.analyzer.agent_responses["Hello!"], 1)
-
-    def test_multiple_log_entries(self):
-        """Test processing multiple log lines."""
-        sample_logs = """[2025-02-20 14:32:10] INFO - Agent Response: "Hello!"
-[2025-02-20 14:33:15] ERROR - Model Timeout after 5000ms
-[2025-02-20 14:34:02] WARNING - Low memory detected
-[2025-02-20 14:35:10] INFO - Agent Response: "I'm sorry, I didn't understand that."
-"""
-        for line in sample_logs.split("\n"):
-            if line.strip():
-                self.analyzer.parse_log_line(line)
-
-        self.assertEqual(
-            self.analyzer.log_counts, Counter({"INFO": 2, "ERROR": 1, "WARNING": 1})
+        """Setup temporary log file and mock dependencies."""
+        self.temp_log = tempfile.NamedTemporaryFile(
+            delete=False, mode="w", encoding="utf-8"
         )
-        self.assertEqual(self.analyzer.agent_responses["Hello!"], 1)
-        self.assertEqual(
-            self.analyzer.agent_responses["I'm sorry, I didn't understand that."], 1
-        )
-        self.assertEqual(self.analyzer.error_messages["Model Timeout after 5000ms"], 1)
+        self.temp_log.write('[2025-02-20 14:32:10] INFO - Agent Response: "Hello!"\n')
+        self.temp_log.write("[2025-02-20 14:32:15] ERROR - Model Timeout\n")
+        self.temp_log.write("[2025-02-20 14:32:20] WARNING - High Latency\n")
+        self.temp_log.close()  # Close to allow reading
 
-    def test_save_results(self):
-        """Test saving results to a JSON file."""
-        self.analyzer.log_counts = Counter({"INFO": 3, "ERROR": 2, "WARNING": 1})
-        self.analyzer.agent_responses = Counter(
-            {"Hello!": 2, "I'm sorry, I didn't understand that.": 1}
-        )
-        self.analyzer.error_messages = Counter({"Model Timeout after 5000ms": 2})
+        self.output_file = "data/test_log_summary.json"
 
-        with patch("builtins.open", mock_open()) as mock_file:
-            self.analyzer.save_results("fake_output.json")
-            mock_file.assert_called_once_with("fake_output.json", "w", encoding="utf-8")
+    def tearDown(self):
+        """Cleanup temporary files."""
+        os.remove(self.temp_log.name)
+        if os.path.exists(self.output_file):
+            os.remove(self.output_file)
+
+    def test_run_process_logs(self):
+        """Test if run() processes the logs correctly and returns summary and parser."""
+        analyzer = LogAnalyzer(self.temp_log.name, self.output_file)
+        log_summary, log_parser = analyzer.run()
+
+        self.assertIsInstance(log_summary, LogSummary)
+        self.assertIsInstance(log_parser, LogParser)
+        self.assertGreaterEqual(len(log_parser.log_counts), 1)
+
+    def test_run_file_not_found(self):
+        """Test handling of missing log file."""
+        analyzer = LogAnalyzer("non_existent_file.log", self.output_file)
+
+        with self.assertLogs(level="ERROR") as log:
+            result = analyzer.run()
+
+        self.assertIsNone(result)
+        self.assertIn("Log file not found", log.output[0])
+
+    def test_run_creates_output_file(self):
+        """Test that run() generates the expected output file."""
+        analyzer = LogAnalyzer(self.temp_log.name, self.output_file)
+        analyzer.run()
+        self.assertTrue(os.path.exists(self.output_file))
 
 
 if __name__ == "__main__":
