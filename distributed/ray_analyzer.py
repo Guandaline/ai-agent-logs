@@ -60,7 +60,7 @@ def process_logs_ray(log_file, num_workers=4):
     # Split logs into chunks for parallel processing
     chunk_size = max(1, len(log_lines) // num_workers)
     log_chunks = [
-        log_lines[i : i + chunk_size] for i in range(0, len(log_lines), chunk_size)
+        log_lines[i: i + chunk_size] for i in range(0, len(log_lines), chunk_size)
     ]
 
     # Initialize Ray

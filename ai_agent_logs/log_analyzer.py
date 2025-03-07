@@ -67,7 +67,7 @@ def process_logs_ray(log_file, num_workers=4):
 
         chunk_size = len(log_lines) // num_workers or 1
         log_chunks = [
-            log_lines[i : i + chunk_size] for i in range(0, len(log_lines), chunk_size)
+            log_lines[i: i + chunk_size] for i in range(0, len(log_lines), chunk_size)
         ]
 
         ray.init(ignore_reinit_error=True)
@@ -89,4 +89,3 @@ if __name__ == "__main__":
     log_file = "data/sample_logs.txt"
     analyzer = LogAnalyzer(log_file)
     analyzer.ru()
-

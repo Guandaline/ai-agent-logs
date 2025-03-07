@@ -50,7 +50,7 @@ def process_logs_distributed(log_file, num_workers=4):
 
         chunk_size = len(log_lines) // num_workers or 1
         log_chunks = [
-            log_lines[i : i + chunk_size] for i in range(0, len(log_lines), chunk_size)
+            log_lines[i: i + chunk_size] for i in range(0, len(log_lines), chunk_size)
         ]
 
         logging.info(f"Log file split into {len(log_chunks)} chunks.")
@@ -88,6 +88,7 @@ def process_logs_distributed(log_file, num_workers=4):
     except Exception as e:
         logging.error(f"An error occurred during log processing: {e}")
         return None
+
 
 if __name__ == "__main__":
     log_file = "data/sample_logs.txt"
