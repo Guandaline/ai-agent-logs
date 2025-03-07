@@ -19,11 +19,16 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: 📦 Install Poetry
+      - name: 📦 Install Dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install poetry
           poetry config virtualenvs.create true
-          poetry install  # Instala todas as dependências
+          poetry install --no-interaction
+          poetry show  # 🔍 Lista os pacotes instalados para debug
+
+      - name: 🔧 Manually Install Ray (if missing)
+        run: poetry run pip install ray
 
       - name: 🎯 Run Tests
         run: poetry run pytest tests/
@@ -33,3 +38,5 @@ jobs:
 
       - name: 🔍 Run Linter (Flake8)
         run: poetry run flake8 .
+
+
