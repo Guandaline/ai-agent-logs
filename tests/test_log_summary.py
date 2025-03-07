@@ -37,7 +37,7 @@ class TestLogSummary(unittest.TestCase):
 
     def test_save_results(self):
         """Tests saving results to a JSON file."""
-        output_file = "data/test_log_summary.json"
+        output_file = "output/test_log_summary.json"
         self.summary.save_results(output_file)
 
         self.assertTrue(os.path.exists(output_file))

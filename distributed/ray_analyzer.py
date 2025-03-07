@@ -99,7 +99,7 @@ def process_logs_ray(log_file, num_workers=4):
         logging.info(f"{count} times - {error}")
 
     # Save results to a JSON file
-    output_file = "data/ray_log_analysis.json"
+    output_file = "output/ray_log_analysis.json"
     try:
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(

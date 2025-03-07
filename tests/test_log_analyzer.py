@@ -21,7 +21,7 @@ class TestLogAnalyzer(unittest.TestCase):
         self.temp_log.write("[2025-02-20 14:32:20] WARNING - High Latency\n")
         self.temp_log.close()  # Close to allow reading
 
-        self.output_file = "data/test_log_summary.json"
+        self.output_file = "output/test_log_summary.json"
 
     def tearDown(self):
         """Cleanup temporary files."""

@@ -60,7 +60,7 @@ if __name__ == "__main__":
         type=str,
         nargs="?",
         default="data/large_sample_logs.txt",
-        help="Output file name (default: data/sample_logs.txt).",
+        help="Input file name (default: data/sample_logs.txt).",
     )
     parser.add_argument(
         "num_entries",

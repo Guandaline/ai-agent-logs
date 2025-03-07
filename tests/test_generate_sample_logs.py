@@ -5,7 +5,7 @@ from tools.generate_sample_logs import generate_logs
 
 def test_generate_logs():
     """Test if the synthetic log generator creates a file with expected content."""
-    test_file = "data/test_generated_logs.txt"
+    test_file = "output/test_generated_logs.txt"
     generate_logs(test_file, num_entries=50)
 
     assert os.path.exists(test_file)

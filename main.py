@@ -15,7 +15,7 @@ def main():
     parser.add_argument(
         "--output",
         nargs="?",
-        default="data/log_summary.json",
+        default="output/log_summary.json",
         help="Path to save the log summary (optional)",
     )
     args = parser.parse_args()
